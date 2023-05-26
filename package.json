@@ -1,6 +1,6 @@
 {
   "name": "fake-sanity-client",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "Fake (in-memory) Sanity client for testing.",
   "keywords": [
     "sanity",
