@@ -168,7 +168,7 @@ export function createFakeSanityClient(options?: {
         const exists = context.documents.some((d) => d._id === doc._id)
 
         if (!exists) {
-          context.documents = [...context.documents, doc as SanityDocument]
+          context.documents = [...context.documents, {...doc, _rev: txId} as SanityDocument]
           continue
         }
 
