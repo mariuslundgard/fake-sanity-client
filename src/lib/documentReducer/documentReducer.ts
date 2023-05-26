@@ -20,7 +20,7 @@ export function documentReducer(
   }
 
   // Check if the patch matches the document
-  // @todo: `ifRevisionId`
+  // TODO: `ifRevisionId`
   if (d._id !== patch.id) {
     return d
   }

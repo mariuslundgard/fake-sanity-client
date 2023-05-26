@@ -1,10 +1,9 @@
-import {parse} from '../jsonpath/parse'
+import {jsonpath} from '../jsonpath'
 import {shallowClone} from '../shallowClone'
 import {dmp} from './dmp'
-import {_get, _set} from './helpers'
 
-export function diffMatchPatch(target: unknown, pathStr: string, patchStr: string) {
-  const path = parse(pathStr)
+export function diffMatchPatch(target: unknown, pathStr: string, patchStr: string): unknown {
+  const path = jsonpath.parse(pathStr)
 
   if (!path) {
     throw new Error('could not parse jsonpath')
@@ -20,28 +19,30 @@ export function diffMatchPatch(target: unknown, pathStr: string, patchStr: strin
   for (let i = 0; i < len - 1; i += 1) {
     const node = nodes[i]
 
-    let nextTarget = _get(currentTarget, node)
+    let nextTarget = jsonpath.get(currentTarget, node)
 
     if (!nextTarget) {
-      throw new Error(`not found: ${JSON.stringify(node)}`)
+      console.warn('not found', {target: currentTarget, node})
+
+      return target
     }
 
     nextTarget = shallowClone(nextTarget)
 
-    _set(currentTarget, node, nextTarget)
+    jsonpath.set(currentTarget, node, nextTarget)
 
     currentTarget = nextTarget
   }
 
   const dmpPatch = dmp.patch_fromText(patchStr)
-  const prevText = _get(currentTarget, nodes[len - 1])
+  const prevText = jsonpath.get(currentTarget, nodes[len - 1])
 
   if (typeof prevText !== 'string') {
     throw new Error('expected string')
   }
 
   // set new value
-  _set(currentTarget, nodes[len - 1], dmp.patch_apply(dmpPatch, prevText)[0])
+  jsonpath.set(currentTarget, nodes[len - 1], dmp.patch_apply(dmpPatch, prevText)[0])
 
   return ret
 }

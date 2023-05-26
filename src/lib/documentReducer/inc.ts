@@ -1,9 +1,8 @@
-import {parse} from '../jsonpath/parse'
+import {jsonpath} from '../jsonpath'
 import {shallowClone} from '../shallowClone'
-import {_get, _set} from './helpers'
 
-export function inc(target: unknown, pathStr: string, incBy: number) {
-  const path = parse(pathStr)
+export function inc(target: unknown, pathStr: string, incBy: number): unknown {
+  const path = jsonpath.parse(pathStr)
 
   if (!path) {
     throw new Error('could not parse jsonpath')
@@ -19,7 +18,7 @@ export function inc(target: unknown, pathStr: string, incBy: number) {
   for (let i = 0; i < len - 1; i += 1) {
     const node = nodes[i]
 
-    let nextTarget = _get(currentTarget, node)
+    let nextTarget = jsonpath.get(currentTarget, node)
 
     if (!nextTarget) {
       throw new Error(`not found: ${JSON.stringify(node)}`)
@@ -27,20 +26,20 @@ export function inc(target: unknown, pathStr: string, incBy: number) {
 
     nextTarget = shallowClone(nextTarget)
 
-    _set(currentTarget, node, nextTarget)
+    jsonpath.set(currentTarget, node, nextTarget)
 
     currentTarget = nextTarget
   }
 
   // set new value
 
-  const currentValue = _get(currentTarget, nodes[len - 1])
+  const currentValue = jsonpath.get(currentTarget, nodes[len - 1])
 
   if (typeof currentValue !== 'number') {
     throw new Error('value is not a number')
   }
 
-  _set(currentTarget, nodes[len - 1], currentValue + incBy)
+  jsonpath.set(currentTarget, nodes[len - 1], currentValue + incBy)
 
   return ret
 }

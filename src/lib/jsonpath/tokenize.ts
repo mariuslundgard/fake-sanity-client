@@ -1,5 +1,3 @@
-/* eslint-disable no-use-before-define */
-
 import type {IndentifierToken, NumberToken, QuotedToken, SymbolToken, Token} from './types'
 
 type TokenizerFn = () => Token | null
@@ -18,7 +16,7 @@ const SYMBOLS: Record<string, string[]> = {
 
 /**
  * Tokenize a jsonpath2 expression
- * @todo Support '*'
+ * TODO: Support '*'
  */
 export function tokenize(jsonpath: string): Token[] {
   return new Tokenizer(jsonpath).tokenize()

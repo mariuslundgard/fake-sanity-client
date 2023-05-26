@@ -1,9 +1,8 @@
-import {parse} from '../jsonpath/parse'
+import {jsonpath} from '../jsonpath'
 import {shallowClone} from '../shallowClone'
-import {_get, _set} from './helpers'
 
-export function setIfMissing(target: unknown, pathStr: string, value: unknown) {
-  const path = parse(pathStr)
+export function setIfMissing(target: unknown, pathStr: string, value: unknown): unknown {
+  const path = jsonpath.parse(pathStr)
 
   if (!path) {
     throw new Error('could not parse jsonpath')
@@ -18,7 +17,7 @@ export function setIfMissing(target: unknown, pathStr: string, value: unknown) {
   for (let i = 0; i < len - 1; i += 1) {
     const node = nodes[i]
 
-    let nextTarget = _get(currentTarget, node)
+    let nextTarget = jsonpath.get(currentTarget, node)
 
     if (!nextTarget) {
       throw new Error(`not found: ${JSON.stringify(node)}`)
@@ -26,7 +25,7 @@ export function setIfMissing(target: unknown, pathStr: string, value: unknown) {
 
     nextTarget = shallowClone(nextTarget)
 
-    _set(currentTarget, node, nextTarget)
+    jsonpath.set(currentTarget, node, nextTarget)
 
     currentTarget = nextTarget
   }
@@ -35,10 +34,10 @@ export function setIfMissing(target: unknown, pathStr: string, value: unknown) {
 
   const segment = nodes[len - 1]
 
-  const currentValue = _get(currentTarget, segment)
+  const currentValue = jsonpath.get(currentTarget, segment)
 
   if (currentValue === undefined) {
-    _set(currentTarget, segment, value)
+    jsonpath.set(currentTarget, segment, value)
   }
 
   return ret

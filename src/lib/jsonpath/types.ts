@@ -1,5 +1,3 @@
-/* eslint-disable no-use-before-define */
-
 export interface Probe {
   path: Array<string | number>
   containerType(): 'array' | 'object' | 'primitive'

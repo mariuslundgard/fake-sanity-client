@@ -1,5 +1,3 @@
-/* eslint-disable no-use-before-define */
-
 import {tokenize} from './tokenize'
 import type {
   AliasExpr,
@@ -24,7 +22,7 @@ import type {
 
 /**
  * Converts a string into an abstract syntax tree representation
- * @todo Support '*'
+ * TODO: Support '*'
  */
 export function parse(path: string): PathExpr | null {
   return new Parser(path).parse()
