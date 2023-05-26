@@ -1,0 +1,62 @@
+name: CI & Release
+
+on:
+  push:
+  pull_request:
+    branches:
+      - alpha
+      - beta
+      - next
+      - main
+
+jobs:
+  test:
+    runs-on: ${{ matrix.platform }}
+    name: Node.js ${{ matrix.node-version }} / ${{ matrix.platform }}
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [ubuntu-latest, macos-latest]
+        node-version: [lts/*, current]
+    env:
+      CYPRESS_CACHE_FOLDER: '~/.cache/Cypress'
+    steps:
+      - uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b # v3
+      - uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # v3
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: npm i pnpm@latest -g
+      - run: pnpm install
+      - run: pnpm build
+      - run: pnpm lint
+      - run: pnpm test
+      - run: pnpm test:browser
+
+      - name: Upload Cypress Artifacts
+        if: always()
+        uses: actions/upload-artifact@83fd05a356d7e2593de66fc9913b3002723633cb # v3
+        with:
+          name: cypress
+          path: |
+            cypress/screenshots
+            cypress/videos
+  release:
+    name: 'Semantic release'
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b # v3
+        with:
+          # Need to fetch entire commit history to
+          # analyze every commit since last release
+          fetch-depth: 0
+      - uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # v3
+        with:
+          node-version: lts/*
+      - run: npm i pnpm@latest -g
+      - run: pnpm install
+      # Branches that will release new versions are defined in .releaserc.json
+      - run: pnpm exec semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
