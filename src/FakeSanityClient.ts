@@ -3,7 +3,7 @@ import {FakeContext} from './types'
 import {FakeObservableSanityClient} from './FakeObservableSanityClient'
 import {HttpRequest} from 'get-it'
 
-/** @alpha */
+/** @public */
 export class FakeSanityClient extends SanityClient {
   #request: HttpRequest
 

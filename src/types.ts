@@ -1,12 +1,6 @@
-import {
-  // HttpRequest,
-  ListenOptions,
-  Mutation,
-  QueryParams,
-  SanityDocument,
-} from '@sanity/client'
+import {ListenOptions, Mutation, QueryParams, SanityDocument} from '@sanity/client'
 
-/** @alpha */
+/** @public */
 export interface FakeRequest {
   method: 'GET' | 'POST'
   uri: string
@@ -24,7 +18,7 @@ export interface FakeRequest {
   withCredentials: boolean
 }
 
-/** @alpha */
+/** @public */
 export interface FakeContext {
   dataset: string
   projectId: string
@@ -42,7 +36,7 @@ export interface FakeContext {
   resources: Record<string, any>
 }
 
-/** @alpha */
+/** @public */
 export interface FakeClientLog {
   listen: {query: string; params: QueryParams; options: ListenOptions}[]
   request: FakeRequest[]

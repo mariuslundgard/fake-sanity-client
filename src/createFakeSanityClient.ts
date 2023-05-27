@@ -31,7 +31,7 @@ interface FakeListener {
   options: ListenOptions
 }
 
-/** @alpha */
+/** @public */
 export function createFakeSanityClient(options?: {
   apiVersion?: string
   dataset?: string
