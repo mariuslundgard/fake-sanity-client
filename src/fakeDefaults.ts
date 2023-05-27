@@ -9,8 +9,16 @@ export const DEFAULT_FAKE_RESOURCES: Record<string, any> = {
     thirdPartyLogin: true,
     sso: {saml: true},
     providers: [
-      {name: 'google', title: 'Google', url: 'https://api.sanity.io/v1/auth/login/google'},
-      {name: 'github', title: 'GitHub', url: 'https://api.sanity.io/v1/auth/login/github'},
+      {
+        name: 'google',
+        title: 'Google',
+        url: 'https://api.sanity.io/v1/auth/login/google',
+      },
+      {
+        name: 'github',
+        title: 'GitHub',
+        url: 'https://api.sanity.io/v1/auth/login/github',
+      },
       {
         name: 'sanity',
         title: 'E-mail / password',
@@ -37,12 +45,18 @@ export const DEFAULT_FAKE_RESOURCES: Record<string, any> = {
   },
 
   '/projects/<project-id>/datasets/<dataset>/acl': [
-    {permissions: ['history', 'read', 'update', 'create'], filter: '_id in path("**")'},
+    {
+      permissions: ['history', 'read', 'update', 'create'],
+      filter: '_id in path("**")',
+    },
     {
       filter: '(_id in path("**")) && _id in path("drafts.**")',
       permissions: ['history', 'read', 'update', 'create'],
     },
-    {filter: '_id in path("*")', permissions: ['read']},
+    {
+      filter: '_id in path("*")',
+      permissions: ['read'],
+    },
   ],
 }
 

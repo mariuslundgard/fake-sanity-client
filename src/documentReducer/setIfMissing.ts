@@ -1,7 +1,7 @@
-import {jsonpath} from '../jsonpath'
-import {shallowClone} from '../shallowClone'
+import {jsonpath} from '../lib/jsonpath'
+import {shallowClone} from '../lib/shallowClone'
 
-export function set(target: unknown, pathStr: string, value: unknown): unknown {
+export function setIfMissing(target: unknown, pathStr: string, value: unknown): unknown {
   const path = jsonpath.parse(pathStr)
 
   if (!path) {
@@ -9,7 +9,6 @@ export function set(target: unknown, pathStr: string, value: unknown): unknown {
   }
 
   const {nodes} = path
-
   const ret = shallowClone(target)
   const len = nodes.length
 
@@ -21,9 +20,8 @@ export function set(target: unknown, pathStr: string, value: unknown): unknown {
     let nextTarget = jsonpath.get(currentTarget, node)
 
     if (!nextTarget) {
-      console.warn('not found', {target: currentTarget, node})
-
-      return ret
+      console.warn('target not found', {target, node})
+      return target
     }
 
     nextTarget = shallowClone(nextTarget)
@@ -34,7 +32,14 @@ export function set(target: unknown, pathStr: string, value: unknown): unknown {
   }
 
   // set new value
-  jsonpath.set(currentTarget, nodes[len - 1], value)
+
+  const segment = nodes[len - 1]
+
+  const currentValue = jsonpath.get(currentTarget, segment)
+
+  if (currentValue === undefined) {
+    jsonpath.set(currentTarget, segment, value)
+  }
 
   return ret
 }

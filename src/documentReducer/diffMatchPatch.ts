@@ -1,5 +1,5 @@
-import {jsonpath} from '../jsonpath'
-import {shallowClone} from '../shallowClone'
+import {jsonpath} from '../lib/jsonpath'
+import {shallowClone} from '../lib/shallowClone'
 import {dmp} from './dmp'
 
 export function diffMatchPatch(target: unknown, pathStr: string, patchStr: string): unknown {
@@ -22,8 +22,7 @@ export function diffMatchPatch(target: unknown, pathStr: string, patchStr: strin
     let nextTarget = jsonpath.get(currentTarget, node)
 
     if (!nextTarget) {
-      console.warn('not found', {target: currentTarget, node})
-
+      console.warn('target not found', {target, node})
       return target
     }
 
@@ -38,7 +37,8 @@ export function diffMatchPatch(target: unknown, pathStr: string, patchStr: strin
   const prevText = jsonpath.get(currentTarget, nodes[len - 1])
 
   if (typeof prevText !== 'string') {
-    throw new Error('expected string')
+    console.error('expected string', {target, nodes})
+    return ret
   }
 
   // set new value

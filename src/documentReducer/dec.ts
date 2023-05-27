@@ -1,5 +1,5 @@
-import {jsonpath} from '../jsonpath'
-import {shallowClone} from '../shallowClone'
+import {jsonpath} from '../lib/jsonpath'
+import {shallowClone} from '../lib/shallowClone'
 
 export function dec(target: unknown, pathStr: string, decBy: number): unknown {
   const path = jsonpath.parse(pathStr)
@@ -21,7 +21,8 @@ export function dec(target: unknown, pathStr: string, decBy: number): unknown {
     let nextTarget = jsonpath.get(currentTarget, node)
 
     if (!nextTarget) {
-      throw new Error(`not found: ${JSON.stringify(node)}`)
+      console.warn('target not found', {target, node})
+      return target
     }
 
     nextTarget = shallowClone(nextTarget)

@@ -1,7 +1,7 @@
-import {jsonpath} from '../jsonpath'
-import {isArray} from '../predicates'
-import {shallowClone} from '../shallowClone'
-import {Patch} from '../sanity/types'
+import {jsonpath} from '../lib/jsonpath'
+import {isArray} from '../lib/predicates'
+import {Patch} from '../lib/sanity'
+import {shallowClone} from '../lib/shallowClone'
 
 export function insert(target: unknown, _insert: NonNullable<Patch['insert']>): unknown {
   const pathStr =
@@ -31,9 +31,8 @@ export function insert(target: unknown, _insert: NonNullable<Patch['insert']>): 
     let nextTarget = jsonpath.get(currentTarget, node)
 
     if (!nextTarget) {
-      console.warn('not found', {target: currentTarget, node})
-
-      return ret
+      console.warn('target not found', {target, node})
+      return target
     }
 
     nextTarget = shallowClone(nextTarget)

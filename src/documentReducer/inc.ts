@@ -1,8 +1,7 @@
-import {jsonpath} from '../jsonpath'
-import {isRecord} from '../predicates'
-import {shallowClone} from '../shallowClone'
+import {jsonpath} from '../lib/jsonpath'
+import {shallowClone} from '../lib/shallowClone'
 
-export function unset(target: unknown, pathStr: string): unknown {
+export function inc(target: unknown, pathStr: string, incBy: number): unknown {
   const path = jsonpath.parse(pathStr)
 
   if (!path) {
@@ -22,9 +21,8 @@ export function unset(target: unknown, pathStr: string): unknown {
     let nextTarget = jsonpath.get(currentTarget, node)
 
     if (!nextTarget) {
-      console.warn('not found', {target: currentTarget, node})
-
-      return ret
+      console.warn('target not found', {target, node})
+      return target
     }
 
     nextTarget = shallowClone(nextTarget)
@@ -34,15 +32,15 @@ export function unset(target: unknown, pathStr: string): unknown {
     currentTarget = nextTarget
   }
 
-  const segment = nodes[len - 1]
+  // set new value
 
-  if (segment.type === 'attribute') {
-    if (!isRecord(currentTarget)) {
-      throw new Error('target must be a record')
-    }
+  const currentValue = jsonpath.get(currentTarget, nodes[len - 1])
 
-    delete currentTarget[segment.name]
+  if (typeof currentValue !== 'number') {
+    throw new Error('value is not a number')
   }
+
+  jsonpath.set(currentTarget, nodes[len - 1], currentValue + incBy)
 
   return ret
 }

@@ -1,5 +1,5 @@
-import {PatchMutation, PersistedDocumentValue} from '../sanity/types'
-import {shallowClone} from '../shallowClone'
+import {PatchMutation, PersistedDocumentValue} from '../lib/sanity'
+import {shallowClone} from '../lib/shallowClone'
 import {dec} from './dec'
 import {diffMatchPatch} from './diffMatchPatch'
 import {inc} from './inc'
@@ -33,6 +33,7 @@ export function documentReducer(
     }
 
     d._updatedAt = new Date().toUTCString()
+    d._rev = rev
   }
 
   if (patch.setIfMissing) {
@@ -43,6 +44,7 @@ export function documentReducer(
     }
 
     d._updatedAt = new Date().toUTCString()
+    d._rev = rev
   }
 
   if (patch.unset) {
@@ -53,6 +55,7 @@ export function documentReducer(
     }
 
     d._updatedAt = new Date().toUTCString()
+    d._rev = rev
   }
 
   if (patch.dec) {
@@ -63,6 +66,7 @@ export function documentReducer(
     }
 
     d._updatedAt = new Date().toUTCString()
+    d._rev = rev
   }
 
   if (patch.inc) {
@@ -73,6 +77,7 @@ export function documentReducer(
     }
 
     d._updatedAt = new Date().toUTCString()
+    d._rev = rev
   }
 
   if (patch.diffMatchPatch) {
@@ -83,14 +88,14 @@ export function documentReducer(
     }
 
     d._updatedAt = new Date().toUTCString()
+    d._rev = rev
   }
 
   if (patch.insert) {
     d = insert(d, patch.insert) as PersistedDocumentValue
     d._updatedAt = new Date().toUTCString()
+    d._rev = rev
   }
-
-  d._rev = rev
 
   return d
 }

@@ -1,7 +1,7 @@
-import {jsonpath} from '../jsonpath'
-import {shallowClone} from '../shallowClone'
+import {jsonpath} from '../lib/jsonpath'
+import {shallowClone} from '../lib/shallowClone'
 
-export function inc(target: unknown, pathStr: string, incBy: number): unknown {
+export function set(target: unknown, pathStr: string, value: unknown): unknown {
   const path = jsonpath.parse(pathStr)
 
   if (!path) {
@@ -21,7 +21,8 @@ export function inc(target: unknown, pathStr: string, incBy: number): unknown {
     let nextTarget = jsonpath.get(currentTarget, node)
 
     if (!nextTarget) {
-      throw new Error(`not found: ${JSON.stringify(node)}`)
+      console.warn('target not found', {target, node})
+      return target
     }
 
     nextTarget = shallowClone(nextTarget)
@@ -32,14 +33,7 @@ export function inc(target: unknown, pathStr: string, incBy: number): unknown {
   }
 
   // set new value
-
-  const currentValue = jsonpath.get(currentTarget, nodes[len - 1])
-
-  if (typeof currentValue !== 'number') {
-    throw new Error('value is not a number')
-  }
-
-  jsonpath.set(currentTarget, nodes[len - 1], currentValue + incBy)
+  jsonpath.set(currentTarget, nodes[len - 1], value)
 
   return ret
 }

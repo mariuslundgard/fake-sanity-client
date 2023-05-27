@@ -1,7 +1,8 @@
-import {jsonpath} from '../jsonpath'
-import {shallowClone} from '../shallowClone'
+import {jsonpath} from '../lib/jsonpath'
+import {isRecord} from '../lib/predicates'
+import {shallowClone} from '../lib/shallowClone'
 
-export function setIfMissing(target: unknown, pathStr: string, value: unknown): unknown {
+export function unset(target: unknown, pathStr: string): unknown {
   const path = jsonpath.parse(pathStr)
 
   if (!path) {
@@ -9,6 +10,7 @@ export function setIfMissing(target: unknown, pathStr: string, value: unknown): 
   }
 
   const {nodes} = path
+
   const ret = shallowClone(target)
   const len = nodes.length
 
@@ -20,7 +22,8 @@ export function setIfMissing(target: unknown, pathStr: string, value: unknown): 
     let nextTarget = jsonpath.get(currentTarget, node)
 
     if (!nextTarget) {
-      throw new Error(`not found: ${JSON.stringify(node)}`)
+      console.warn('target not found', {target, node})
+      return target
     }
 
     nextTarget = shallowClone(nextTarget)
@@ -30,14 +33,14 @@ export function setIfMissing(target: unknown, pathStr: string, value: unknown): 
     currentTarget = nextTarget
   }
 
-  // set new value
-
   const segment = nodes[len - 1]
 
-  const currentValue = jsonpath.get(currentTarget, segment)
+  if (segment.type === 'attribute') {
+    if (!isRecord(currentTarget)) {
+      throw new Error('target must be a record')
+    }
 
-  if (currentValue === undefined) {
-    jsonpath.set(currentTarget, segment, value)
+    delete currentTarget[segment.name]
   }
 
   return ret
