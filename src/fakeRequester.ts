@@ -6,12 +6,12 @@ import {Subscriber} from 'rxjs'
 
 /** @internal */
 export function createFakeRequester(context: FakeContext): HttpRequest {
-  const fakeRequester: Requester = (r) => {
+  const fakeRequester: Requester = (req) => {
     return Promise.resolve({
       body: {},
       headers: {},
       statusCode: 200,
-      url: isString(r) ? r : r.url,
+      url: isString(req) ? req : req.url,
     })
   }
 
@@ -52,7 +52,7 @@ export function createFakeRequester(context: FakeContext): HttpRequest {
         throw new Error('/data/query: missing query')
       }
 
-      const result = await context.fetch(context.documents, groqQuery, params)
+      const result = await context.fetch(groqQuery, params)
 
       return {result: result ?? null, ms: 0}
     }
@@ -75,7 +75,6 @@ export function createFakeRequester(context: FakeContext): HttpRequest {
       return {
         transactionId: req.body.transactionId,
         results: affectedIds.map((id) => ({id, operation: 'update'})),
-        // results: [{id: 'drafts.99d010cc-ee6d-44c7-96c8-00ba261066e9', operation: 'update'}],
       }
     }
 
@@ -117,8 +116,10 @@ export function createFakeRequester(context: FakeContext): HttpRequest {
     return undefined
   }
 
-  function request(req: RequestOptions, _requester: Requester) {
-    context.log.request.push(req as FakeRequest)
+  function request(_req: RequestOptions, _requester: Requester) {
+    const req = _req as FakeRequest
+
+    context.log.request.push(req)
 
     return {
       subscribe(subscriber: Subscriber<HttpRequestEvent<any>>) {
@@ -131,30 +132,35 @@ export function createFakeRequester(context: FakeContext): HttpRequest {
           lengthComputable: true,
         })
 
-        fetchResource(req as FakeRequest)
+        fetchResource(req)
           .then((body) => {
             if (body === undefined) {
-              subscriber.error(new Error(`not found (url: ${(req as any).url}`))
+              subscriber.next({
+                type: 'response',
+                body: {message: `not found: ${req.url}`},
+                url: req.url,
+                method: req.method ?? 'GET',
+                statusCode: 404,
+                headers: {},
+              })
+            } else {
+              subscriber.next({
+                type: 'response',
+                body,
+                url: req.url,
+                method: req.method ?? 'GET',
+                statusCode: 200,
+                headers: {},
+              })
             }
-
-            subscriber.next({
-              type: 'response',
-              body,
-              url: (req as any).url,
-              method: req.method ?? 'GET',
-              statusCode: 200,
-              headers: {},
-            })
 
             subscriber.complete()
           })
-          .catch((err) => {
-            subscriber.error(err)
-          })
+          .catch(subscriber.error)
 
         return {
           unsubscribe() {
-            //
+            subscriber.complete()
           },
         }
       },

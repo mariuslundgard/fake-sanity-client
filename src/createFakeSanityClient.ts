@@ -29,6 +29,7 @@ interface FakeListener {
   query: string
   params: QueryParams
   options: ListenOptions
+  result: SanityDocument[]
 }
 
 /** @public */
@@ -73,7 +74,6 @@ export function createFakeSanityClient(options?: {
     mutations: Mutation<any>[]
   ): Promise<string[]> {
     const txId = transactionId ?? uuidv4()
-    const prevDocuments = context.documents
 
     // apply mutations
     for (const mut of mutations) {
@@ -83,38 +83,38 @@ export function createFakeSanityClient(options?: {
     const affectedIds: string[] = []
 
     for (const listener of listeners) {
-      const prevDocs: SanityDocument[] = await fetch(prevDocuments, listener.query, listener.params)
+      const prevResult = listener.result
+      const currentResult: SanityDocument[] = await fetch(listener.query, listener.params)
 
-      const currentDocs: SanityDocument[] = await fetch(
-        context.documents,
-        listener.query,
-        listener.params
-      )
+      // update listener result
+      listener.result = currentResult
 
-      for (const current of currentDocs) {
+      for (const current of currentResult) {
         const id = current._id
-        const prev = prevDocs.find((d) => d._id === id)
+        const prev = prevResult.find((d) => d._id === id)
 
         if (prev !== current) {
           affectedIds.push(id)
 
-          listener.observer.next({
-            type: 'mutation',
-            effects: {apply: [], revert: []},
-            eventId: `${txId}#${id}`,
-            documentId: id,
-            transactionId: txId,
-            transition: 'update',
-            identity: DEFAULT_FAKE_RESOURCES['/users/me'].id, // todo
-            mutations,
-            result: current,
-            previousRev: prev?._rev,
-            resultRev: current._rev,
-            timestamp: new Date().toISOString(),
-            visibility: 'query',
-            // transactionCurrentEvent: 1,
-            // transactionTotalEvents: 1,
-          })
+          setTimeout(() => {
+            listener.observer.next({
+              type: 'mutation',
+              effects: {apply: [], revert: []},
+              eventId: `${txId}#${id}`,
+              documentId: id,
+              transactionId: txId,
+              transition: 'update',
+              identity: DEFAULT_FAKE_RESOURCES['/users/me'].id, // todo
+              mutations,
+              result: current,
+              previousRev: prev?._rev,
+              resultRev: current._rev,
+              timestamp: new Date().toISOString(),
+              visibility: 'query',
+              // transactionCurrentEvent: 1,
+              // transactionTotalEvents: 1,
+            })
+          }, 0)
         }
       }
     }
@@ -135,31 +135,48 @@ export function createFakeSanityClient(options?: {
     })
 
     return new Observable<ListenEvent<any>>((observer) => {
-      observer.next({type: 'welcome', listenerName} as WelcomeEvent)
+      let listener: FakeListener | undefined
 
-      const listener = {
-        observer,
-        name: listenerName,
-        query: listenQuery,
-        params: listenParams,
-        options: listenOptions,
-      }
+      context
+        .fetch(listenQuery, listenParams)
+        .then((result) => {
+          listener = {
+            observer,
+            name: listenerName,
+            query: listenQuery,
+            params: listenParams,
+            options: listenOptions,
+            result,
+          }
 
-      listeners.push(listener)
+          listeners.push(listener)
+
+          listener.observer.next({
+            type: 'welcome',
+            listenerName,
+          } as WelcomeEvent)
+        })
+        .catch((err) => {
+          console.error('listen(): could not fetch initial result:', err)
+        })
 
       return () => {
-        const idx = listeners.indexOf(listener)
+        if (listener) {
+          const idx = listeners.indexOf(listener)
 
-        if (idx > -1) {
-          listeners.splice(idx, 1)
+          if (idx > -1) {
+            listeners.splice(idx, 1)
+          }
+
+          listener = undefined
         }
       }
     })
   }
 
-  async function fetch(documents: SanityDocument[], query: string, params: QueryParams) {
+  async function fetch(query: string, params: QueryParams) {
     const tree = parse(query)
-    const value = await evaluate(tree, {dataset: documents, params})
+    const value = await evaluate(tree, {dataset: context.documents, params})
     const result = await value.get()
 
     return result ?? null

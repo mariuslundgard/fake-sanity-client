@@ -3,18 +3,18 @@ import {ListenOptions, Mutation, QueryParams, SanityDocument} from '@sanity/clie
 /** @public */
 export interface FakeRequest {
   method: 'GET' | 'POST'
-  uri: string
-  json: boolean
   body: any
-  query: Record<string, any>
-  timeout: number
-  headers: Record<string, string>
-  token?: string
-  tag?: string
   canUseCdn?: boolean
-  signal?: AbortSignal
-  url: string
+  headers: Record<string, string>
+  json: boolean
   proxy?: unknown
+  query: Record<string, any>
+  signal?: AbortSignal
+  tag?: string
+  timeout: number
+  token?: string
+  uri: string
+  url: string
   withCredentials: boolean
 }
 
@@ -23,7 +23,7 @@ export interface FakeContext {
   dataset: string
   projectId: string
   documents: SanityDocument[]
-  fetch: (documents: SanityDocument[], query: string, params: QueryParams) => Promise<any>
+  fetch: (query: string, params: QueryParams) => Promise<any>
   // eslint-disable-next-line no-use-before-define
   // listen: (this: FakeSanityClient | FakeObservableSanityClient, ...args: any[]) => any
   listen: (this: any, ...args: any[]) => any
@@ -32,7 +32,6 @@ export interface FakeContext {
     request: FakeRequest[]
   }
   mutate: (transactionId: string | undefined, mutations: Mutation<any>[]) => Promise<string[]>
-  // request: HttpRequest
   resources: Record<string, any>
 }
 
