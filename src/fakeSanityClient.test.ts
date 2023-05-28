@@ -106,12 +106,69 @@ test('should listen', () => {
 
   const result$ = client.listen(`*[_type == $id]{title}`, {id: 'test'})
 
-  result$.subscribe()
+  result$.subscribe().unsubscribe()
 
   expect(client.context.log.listen).toEqual([
     {
       query: '*[_type == $id]{title}',
       params: {id: 'test'},
+    },
+  ])
+})
+
+test.only('should patch like PTE', async () => {
+  const client = createFakeSanityClient({
+    documents: [
+      {
+        _type: 'test',
+        _id: 'test',
+        _rev: 'foo',
+        _updatedAt: '2023-01-01T00:00:00.000Z',
+        _createdAt: '2023-01-01T00:00:00.000Z',
+        title: 'Test',
+      },
+    ],
+  })
+
+  let tx = client.transaction()
+
+  tx = tx.patch('test', {setIfMissing: {body: []}})
+  tx = tx.patch('test', {setIfMissing: {body: []}})
+  tx = tx.patch('test', {
+    insert: {
+      before: 'body[0]',
+      items: [
+        {
+          _key: 'foo',
+          _type: 'block',
+          children: [
+            {
+              _key: 'bar',
+              _type: 'span',
+              text: '',
+            },
+          ],
+        },
+      ],
+    },
+  })
+  tx = tx.patch('test', {
+    diffMatchPatch: {'body[_key=="foo"].children[_key=="bar"].text': '@@ -0,0 +1 @@\n+s\n'},
+  })
+
+  await tx.commit()
+
+  expect(client.context.documents[0].body).toEqual([
+    {
+      _key: 'foo',
+      _type: 'block',
+      children: [
+        {
+          _key: 'bar',
+          _type: 'span',
+          text: 's',
+        },
+      ],
     },
   ])
 })
