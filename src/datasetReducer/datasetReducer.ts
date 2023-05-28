@@ -60,7 +60,7 @@ export function datasetReducer(
     }
 
     // eslint-disable-next-line no-console
-    console.log('TODO: delete by query')
+    console.warn('TODO: delete by query')
 
     return dataset
   }
@@ -77,14 +77,19 @@ export function datasetReducer(
         copy[idx] = documentReducer(doc, patch as any, txId)
         return copy
       }
-    } else {
-      // todo
+
+      return dataset
     }
+
+    // eslint-disable-next-line no-console
+    console.warn('TODO: patch by query')
 
     return dataset
   }
 
   // if code reaches here, it means we have a mutation type not supported
+  // eslint-disable-next-line no-console
+  console.error('TODO: unknown mutation:', mut)
 
   return dataset
 }
