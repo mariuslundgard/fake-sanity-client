@@ -5,6 +5,13 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.1.1](https://github.com/mariuslundgard/fake-sanity-client/compare/v1.1.0...v1.1.1) (2023-05-28)
+
+### Bug Fixes
+
+- insert at index ([257e35c](https://github.com/mariuslundgard/fake-sanity-client/commit/257e35c910b3b880b34d53ca647c052b58f7ef98))
+- log warnings ([fec0b50](https://github.com/mariuslundgard/fake-sanity-client/commit/fec0b50024ebef2065ec265c7bb433f0bd6ba9f4))
+
 ## [1.1.0](https://github.com/mariuslundgard/fake-sanity-client/compare/v1.0.1...v1.1.0) (2023-05-27)
 
 ### Features
