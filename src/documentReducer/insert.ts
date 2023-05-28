@@ -31,7 +31,7 @@ export function insert(target: unknown, _insert: NonNullable<Patch['insert']>): 
     let nextTarget = jsonpath.get(currentTarget, node)
 
     if (!nextTarget) {
-      console.warn('target not found', {target, node})
+      console.warn('insert(): target not found', JSON.stringify({target, node}, null, 2))
       return target
     }
 
@@ -42,31 +42,40 @@ export function insert(target: unknown, _insert: NonNullable<Patch['insert']>): 
     currentTarget = nextTarget
   }
 
-  const node = nodes[len - 1]
+  const lastNode = nodes[len - 1]
 
   if (!isArray(currentTarget)) {
-    throw new Error('not an array')
+    throw new Error('insert(): target is not an array')
   }
 
-  const currentValue = jsonpath.get(currentTarget, node)
-
   if (
-    !currentValue &&
-    node.type === 'union' &&
-    node.nodes.length === 1 &&
-    node.nodes[0].type === 'index' &&
-    node.nodes[0].value === -1
+    lastNode.type === 'union' &&
+    lastNode.nodes.length === 1 &&
+    lastNode.nodes[0].type === 'index' &&
+    lastNode.nodes[0].value === -1
   ) {
-    // Push
+    // Insert at end
     currentTarget.push(..._insert.items)
 
     return ret
   }
 
+  if (
+    lastNode.type === 'union' &&
+    lastNode.nodes.length === 1 &&
+    lastNode.nodes[0].type === 'index'
+  ) {
+    // Insert at index
+    currentTarget.splice(lastNode.nodes[0].value, 0, ..._insert.items)
+
+    return ret
+  }
+
+  const currentValue = jsonpath.get(currentTarget, lastNode)
   const idx = currentTarget.indexOf(currentValue)
 
   if (idx === -1) {
-    console.error('not found', {currentValue, currentTarget})
+    console.error('insert(): not found', {currentValue, currentTarget})
 
     // throw new Error('value not found')
     return ret
